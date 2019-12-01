@@ -42,6 +42,7 @@ public class RockerView extends View {
     private CallBackMode mCallBackMode = CallBackMode.CALL_BACK_MODE_MOVE;
     private OnAngleChangeListener mOnAngleChangeListener;
     private OnShakeListener mOnShakeListener;
+    private OnPositionChangeListener mOnPositionChangeListener;
 
     private DirectionMode mDirectionMode;
     private Direction tempDirection = Direction.DIRECTION_CENTER;
@@ -298,6 +299,9 @@ public class RockerView extends View {
      * @return 摇杆实际显示的位置（点）
      */
     private Point getRockerPositionPoint(Point centerPoint, Point touchPoint, float regionRadius, float rockerRadius) {
+
+        Point mResultPoint;
+
         // 两点在X轴的距离
         float lenX = (float) (touchPoint.x - centerPoint.x);
         // 两点在Y轴距离
@@ -308,19 +312,35 @@ public class RockerView extends View {
         double radian = Math.acos(lenX / lenXY) * (touchPoint.y < centerPoint.y ? -1 : 1);
         // 计算角度
         double angle = radian2Angle(radian);
+        // 计算X轴占比
+        float positionTempX = lenX / (regionRadius - rockerRadius);
+        // 计算Y轴占比
+        float positionTempY = lenY / (regionRadius - rockerRadius);
 
-        // 回调 返回参数
-        callBack(angle);
+        if(positionTempX > 1 ) positionTempX =  1;
+        if(positionTempX < -1) positionTempX = -1;
+        if(positionTempY > 1 ) positionTempY =  1;
+        if(positionTempY < -1) positionTempY = -1;
 
-        Logger.i(TAG, "getRockerPositionPoint: 角度 :" + angle);
+        // 转换为右手坐标系
+        float positionX =  positionTempX;
+        float positionY = -positionTempY;
+
         if (lenXY + rockerRadius <= regionRadius) { // 触摸位置在可活动范围内
-            return touchPoint;
+            mResultPoint = touchPoint;
         } else { // 触摸位置在可活动范围以外
             // 计算要显示的位置
             int showPointX = (int) (centerPoint.x + (regionRadius - rockerRadius) * Math.cos(radian));
             int showPointY = (int) (centerPoint.y + (regionRadius - rockerRadius) * Math.sin(radian));
-            return new Point(showPointX, showPointY);
+            mResultPoint = new Point(showPointX, showPointY);
         }
+
+        // 回调 返回参数
+        callBack(angle, positionX, positionY);
+        Logger.i(TAG, "getRockerPositionPoint: 角度 :" + angle + " 距离 ：" + lenXY);
+        Logger.i(TAG, "getRockerPositionPoint: positionX :" + positionX + " positionY ：" + positionY);
+
+        return mResultPoint;
     }
 
     /**
@@ -378,6 +398,9 @@ public class RockerView extends View {
         if (null != mOnShakeListener) {
             mOnShakeListener.onStart();
         }
+        if (null != mOnPositionChangeListener) {
+            mOnPositionChangeListener.onStart();
+        }
     }
 
     /**
@@ -386,10 +409,16 @@ public class RockerView extends View {
      *
      * @param angle 摇动角度
      */
-    private void callBack(double angle) {
+    private void callBack(double angle, float positionX, float positionY) {
+
         if (null != mOnAngleChangeListener) {
             mOnAngleChangeListener.angle(angle);
         }
+
+        if (null != mOnPositionChangeListener) {
+            mOnPositionChangeListener.position(angle, positionX, positionY);
+        }
+
         if (null != mOnShakeListener) {
             if (CallBackMode.CALL_BACK_MODE_MOVE == mCallBackMode) {
                 switch (mDirectionMode) {
@@ -587,6 +616,9 @@ public class RockerView extends View {
         if (null != mOnShakeListener) {
             mOnShakeListener.onFinish();
         }
+        if (null != mOnPositionChangeListener) {
+            mOnPositionChangeListener.onFinish();
+        }
     }
 
     /**
@@ -655,6 +687,14 @@ public class RockerView extends View {
     }
 
     /**
+     * 添加摇杆位置监听
+     * @param listener
+     */
+    public void setOnPositionChangeListener(OnPositionChangeListener listener) {
+        mOnPositionChangeListener = listener;
+    }
+
+    /**
      * 摇动方向监听接口
      */
     public interface OnShakeListener {
@@ -685,6 +725,30 @@ public class RockerView extends View {
          * @param angle 角度[0,360)
          */
         void angle(double angle);
+
+        // 结束
+        void onFinish();
+    }
+
+    /**
+     * 摇杆比例位置监听
+     * 使用右手坐标系，中心点为坐标原点
+     * X轴：1.00~-1.00
+     * Y轴：1.00~-1.00
+     */
+
+    public interface OnPositionChangeListener {
+        // 开始
+        void onStart();
+
+        /**
+         * 摇杆位置变化
+         * 使用右手坐标系，中心点为坐标原点
+         * @param angle 角度[0,360)
+         * @param positionX 角度[1.00~-1.00]
+         * @param positionY 角度[1.00~-1.00]
+         */
+        void position(double angle, float positionX, float positionY);
 
         // 结束
         void onFinish();

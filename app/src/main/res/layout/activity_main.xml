@@ -33,7 +33,7 @@
         android:layout_height="200dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        kongqw:areaBackground="@mipmap/view_big"
+        kongqw:areaBackground="@mipmap/icon_rocker_background"
         kongqw:rockerBackground="@mipmap/view_small"
         kongqw:rockerRadius="30dp" />
 

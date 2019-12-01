@@ -1,5 +1,7 @@
 package com.kongqw.rockerlibrary;
 
+import android.util.Log;
+
 /**
  * Created by kqw on 2016/9/1.
  * Logger
@@ -7,6 +9,6 @@ package com.kongqw.rockerlibrary;
 public class Logger {
 
     public static void i(String tag, String msg) {
-        // Log.i(tag, msg);
+         Log.i(tag, msg);
     }
 }

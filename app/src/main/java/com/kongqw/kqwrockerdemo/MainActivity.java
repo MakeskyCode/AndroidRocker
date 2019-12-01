@@ -41,15 +41,15 @@ public class MainActivity extends AppCompatActivity {
 
         RockerView rockerViewRight = (RockerView) findViewById(R.id.rockerView_right);
         if (rockerViewRight != null) {
-            rockerViewRight.setOnAngleChangeListener(new RockerView.OnAngleChangeListener() {
+            rockerViewRight.setOnPositionChangeListener(new RockerView.OnPositionChangeListener() {
                 @Override
                 public void onStart() {
                     mLogRight.setText(null);
                 }
 
                 @Override
-                public void angle(double angle) {
-                    mLogRight.setText("摇动角度 : " + angle);
+                public void position(double angle, float positionX, float positionY) {
+                    mLogRight.setText("摇动角度 : " + angle + '\n' + "X : " + positionX + '\n' + "Y : " + positionY);
                 }
 
                 @Override
